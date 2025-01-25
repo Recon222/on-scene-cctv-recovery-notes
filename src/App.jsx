@@ -81,11 +81,14 @@ const App = () => {
 
   // Auto-fill current time for specified fields when focused
   const handleTimeFieldFocus = (fieldName) => {
-    if (!formData[fieldName]) {
-      const now = DateTime.now().toFormat("yyyy-MM-dd'T'HH:mm");
-      setFormData(prev => ({ ...prev, [fieldName]: now }));
-    }
-  };
+  if (!formData[fieldName]) {
+    const now = DateTime.now();
+    const timeFormat = ['onSceneArrival', 'onSceneDeparture', 'actualDatetime'].includes(fieldName) 
+      ? "yyyy-MM-dd'T'HH:mm:ss"
+      : "yyyy-MM-dd'T'HH:mm";
+    setFormData(prev => ({ ...prev, [fieldName]: now.toFormat(timeFormat) }));
+  }
+};
 
   // Calculate time difference and corrected times when DVR or actual time changes
   useEffect(() => {
