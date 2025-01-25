@@ -62,7 +62,7 @@ export const generateNotes = (formData) => {
 
   // Location and time note
   if (formData.address && formData.onSceneArrival) {
-    const arrivalTime = DateTime.fromISO(formData.onSceneArrival).toFormat('yyyy-MM-dd @ HHmm hrs');
+    const arrivalTime = DateTime.fromISO(formData.onSceneArrival).toFormat("yyyy-MM-dd @ HHmm 'hrs'");
     notes.push(`• Attended ${formData.address} on ${arrivalTime} to recover requested video evidence.`);
   }
 
@@ -70,27 +70,27 @@ export const generateNotes = (formData) => {
   if (formData.extractFrom && formData.extractTo && formData.timeDifference) {
     const isActualTime = formData.timeType === 'actual_time';
     
-    const requestedFromTime = DateTime.fromISO(formData.extractFrom).toFormat('yyyy-MM-dd HHmm hrs');
-    const requestedToTime = DateTime.fromISO(formData.extractTo).toFormat('yyyy-MM-dd HHmm hrs');
+    const requestedFromTime = DateTime.fromISO(formData.extractFrom).toFormat("yyyy-MM-dd HHmm 'hrs'");
+    const requestedToTime = DateTime.fromISO(formData.extractTo).toFormat("yyyy-MM-dd HHmm 'hrs'");
     
     let correctedFromTime, correctedToTime;
     
     if (isActualTime) {
-      correctedFromTime = DateTime.fromISO(formData.correctedDvrFrom).toFormat('yyyy-MM-dd HHmm hrs');
-      correctedToTime = DateTime.fromISO(formData.correctedDvrTo).toFormat('yyyy-MM-dd HHmm hrs');
+      correctedFromTime = DateTime.fromISO(formData.correctedDvrFrom).toFormat("yyyy-MM-dd HHmm 'hrs'");
+      correctedToTime = DateTime.fromISO(formData.correctedDvrTo).toFormat("yyyy-MM-dd HHmm 'hrs'");
       notes.push(
         `• Recovered requested cameras from ${requestedFromTime} to ${requestedToTime} (actual time, requested)/ ${correctedFromTime} to ${correctedToTime} (DVR time, corrected)`
       );
     } else {
-      correctedFromTime = DateTime.fromISO(formData.correctedRealFrom).toFormat('yyyy-MM-dd HHmm hrs');
-      correctedToTime = DateTime.fromISO(formData.correctedRealTo).toFormat('yyyy-MM-dd HHmm hrs');
+      correctedFromTime = DateTime.fromISO(formData.correctedRealFrom).toFormat("yyyy-MM-dd HHmm 'hrs'");
+      correctedToTime = DateTime.fromISO(formData.correctedRealTo).toFormat("yyyy-MM-dd HHmm 'hrs'");
       notes.push(
         `• Recovered requested cameras from ${requestedFromTime} to ${requestedToTime} (DVR time, requested)/ ${correctedFromTime} to ${correctedToTime} (actual time, corrected)`
       );
     }
 
     if (formData.timeDifference.formatted !== '00:00:00') {
-      notes.push(`- Time offset: DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time.`);
+      notes.push(`• Time offset: DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time.`);
     }
   }
 
