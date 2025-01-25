@@ -1,0 +1,428 @@
+import React, { useState, useEffect } from 'react';
+import { DateTime } from 'luxon';
+import {
+  calculateTimeDifference,
+  calculateCorrectedTime,
+  calculateRetention,
+  generateNotes,
+  exportToPDF,
+  exportToJSON
+} from './utils';
+
+// ... [Previous state and handlers remain the same] ...
+
+const App = () => {
+  // ... [Previous state and handlers from part 1] ...
+
+  return (
+    <div className="container-xl py-5">
+      <div className="row justify-content-center">
+        <div className="col-xl-12">
+          <div className="card shadow" style={{ maxWidth: '1140px', margin: '0 auto' }}>
+            <div className="card-body">
+              <h1 className="card-title text-center mb-4">On-Site Video Recovery Notes</h1>
+              
+              <form onSubmit={handleSubmit}>
+                <div className="row g-3">
+                  {/* Basic Information */}
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="occ" className="form-label">Occ #:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="occ"
+                      name="occ"
+                      value={formData.occ}
+                      onChange={handleInputChange}
+                      required
+                      list="recentOCCList"
+                    />
+                    <datalist id="recentOCCList">
+                      {/* Recent OCCs will be populated here */}
+                    </datalist>
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="requestedBy" className="form-label">Requested by:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="requestedBy"
+                      name="requestedBy"
+                      value={formData.requestedBy}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="badge" className="form-label">Badge #:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="badge"
+                      name="badge"
+                      value={formData.badge}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="unit" className="form-label">Unit:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="unit"
+                      name="unit"
+                      value={formData.unit}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  {/* Location Information */}
+                  <div className="col-12 col-lg-6">
+                    <label htmlFor="address" className="form-label">Address/Business Name:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="locationContact" className="form-label">Location Contact:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="locationContact"
+                      name="locationContact"
+                      value={formData.locationContact}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="locationPhone" className="form-label">Location Phone Number:</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      id="locationPhone"
+                      name="locationPhone"
+                      value={formData.locationPhone}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  {/* Time Information */}
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="requestReceived" className="form-label">Request Received:</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      id="requestReceived"
+                      name="requestReceived"
+                      value={formData.requestReceived}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-12 col-lg-6">
+                    <label className="form-label">Date/Time to Extract:</label>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="extractFrom"
+                          name="extractFrom"
+                          value={formData.extractFrom}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="extractTo"
+                          name="extractTo"
+                          value={formData.extractTo}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label className="form-label">Time Type:</label>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="timeType"
+                        id="actualTime"
+                        value="actual_time"
+                        checked={formData.timeType === 'actual_time'}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <label className="form-check-label" htmlFor="actualTime">
+                        Actual Time
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="timeType"
+                        id="dvrTime"
+                        value="dvr_time"
+                        checked={formData.timeType === 'dvr_time'}
+                        onChange={handleInputChange}
+                      />
+                      <label className="form-check-label" htmlFor="dvrTime">
+                        DVR Time
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Corrected Times Display */}
+                  <div className="col-12 col-lg-6">
+                    <label className="form-label">Corrected DVR Time:</label>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="correctedDvrFrom"
+                          value={formData.correctedDvrFrom}
+                          readOnly
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="correctedDvrTo"
+                          value={formData.correctedDvrTo}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12 col-lg-6">
+                    <label className="form-label">Corrected Real Time:</label>
+                    <div className="row">
+                      <div className="col-md-6">
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="correctedRealFrom"
+                          value={formData.correctedRealFrom}
+                          readOnly
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="correctedRealTo"
+                          value={formData.correctedRealTo}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* On Scene Times */}
+                  <div className="col-12">
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label htmlFor="onSceneArrival" className="form-label">
+                          On-Scene Arrival Date/Time:
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="onSceneArrival"
+                          name="onSceneArrival"
+                          value={formData.onSceneArrival}
+                          onChange={handleInputChange}
+                          onFocus={() => handleTimeFieldFocus('onSceneArrival')}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label htmlFor="onSceneDeparture" className="form-label">
+                          On-Scene Departure Date/Time:
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="onSceneDeparture"
+                          name="onSceneDeparture"
+                          value={formData.onSceneDeparture}
+                          onChange={handleInputChange}
+                          onFocus={() => handleTimeFieldFocus('onSceneDeparture')}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* DVR Information Section */}
+                  <div className="col-12">
+                    <h4 className="mt-4">DVR INFORMATION</h4>
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="dvrLocation" className="form-label">DVR Location:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="dvrLocation"
+                      name="dvrLocation"
+                      value={formData.dvrLocation}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="dvrType" className="form-label">DVR Type/Brand:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="dvrType"
+                      name="dvrType"
+                      value={formData.dvrType}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="serialNumber" className="form-label">Serial Number/Model Number:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="serialNumber"
+                      name="serialNumber"
+                      value={formData.serialNumber}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-3 col-lg-1">
+                    <label htmlFor="numChannels" className="form-label">Number of Channels:</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="numChannels"
+                      name="numChannels"
+                      value={formData.numChannels}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-3 col-lg-1">
+                    <label htmlFor="activeCameras" className="form-label">Active Cameras:</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="activeCameras"
+                      name="activeCameras"
+                      value={formData.activeCameras}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="dvrDatetime" className="form-label">DVR Date/Time:</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      id="dvrDatetime"
+                      name="dvrDatetime"
+                      value={formData.dvrDatetime}
+                      onChange={handleInputChange}
+                      onFocus={() => handleTimeFieldFocus('dvrDatetime')}
+                      step="1"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="actualDatetime" className="form-label">Actual Date/Time:</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      id="actualDatetime"
+                      name="actualDatetime"
+                      value={formData.actualDatetime}
+                      onChange={handleInputChange}
+                      onFocus={() => handleTimeFieldFocus('actualDatetime')}
+                      step="1"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="timeDifference" className="form-label">Time Difference:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="timeDifference"
+                      value={formData.timeDifference ? 
+                        `DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time` : 
+                        ''}
+                      readOnly
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="retention" className="form-label">First Recording Date:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="retention"
+                      name="retention"
+                      value={formData.retention}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="username" className="form-label">User Name:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="password" className="form-label">Password:</label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      id="passwor
