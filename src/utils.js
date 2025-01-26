@@ -37,22 +37,18 @@ export const calculateCorrectedTime = (extractTime, timeDifference, isActualTime
   return time.plus({ milliseconds: adjustment }).toFormat("yyyy-MM-dd'T'HH:mm:ss");
 };
 
-export const calculateRetention = (onSceneTime, firstRecordedDate, scopeDate) => {
-  if (!onSceneTime || !firstRecordedDate || !scopeDate) return null;
+export const calculateRetention = (onSceneTime, firstRecordedDate) => {
+  if (!firstRecordedDate) return null;
 
-  const onScene = DateTime.fromISO(onSceneTime);
+  const currentDate = DateTime.now();
   const firstRecorded = DateTime.fromISO(firstRecordedDate);
-  const scope = DateTime.fromISO(scopeDate);
 
-  if (!onScene.isValid || !firstRecorded.isValid || !scope.isValid) return null;
+  if (!firstRecorded.isValid) return null;
 
-  const totalRetention = Math.floor(onScene.diff(firstRecorded, 'days').days);
-  const overwriteDate = firstRecorded.plus({ days: totalRetention });
-  const daysUntilOverwrite = Math.floor(overwriteDate.diff(scope, 'days').days);
+  const totalRetention = Math.floor(currentDate.diff(firstRecorded, 'days').days);
 
   return {
-    totalRetention,
-    daysUntilOverwrite
+    totalRetention
   };
 };
 
@@ -134,18 +130,13 @@ export const generateNotes = (formData) => {
 
   // Retention warning if applicable
   if (formData.retention) {
-    const { totalRetention, daysUntilOverwrite } = calculateRetention(
-      formData.onSceneArrival,
-      formData.retention,
-      formData.extractFrom
+    const { totalRetention } = calculateRetention(
+      null,
+      formData.retention
     );
 
     if (totalRetention) {
       notes.push(`• DVR retention period: ${totalRetention} days`);
-      
-      if (daysUntilOverwrite > 0 && daysUntilOverwrite < 7) {
-        notes.push(`- WARNING: Video will be overwritten in ${daysUntilOverwrite} days`);
-      }
     }
   }
 
