@@ -450,6 +450,85 @@ const App = () => {
                     </div>
                   </div>
 
+                  {/* On Scene Times */}
+                  <div className="col-12">
+                    <div className="row">
+                      <div className="col-md-6">
+                        <label htmlFor="onSceneArrival" className="form-label">
+                          On-Scene Arrival Date/Time:
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="onSceneArrival"
+                          name="onSceneArrival"
+                          value={formData.onSceneArrival}
+                          onChange={handleInputChange}
+                          onFocus={() => handleTimeFieldFocus('onSceneArrival')}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label htmlFor="onSceneDeparture" className="form-label">
+                          On-Scene Departure Date/Time:
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          id="onSceneDeparture"
+                          name="onSceneDeparture"
+                          value={formData.onSceneDeparture}
+                          onChange={handleInputChange}
+                          onFocus={() => handleTimeFieldFocus('onSceneDeparture')}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="dvrDatetime" className="form-label">DVR Date/Time:</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      id="dvrDatetime"
+                      name="dvrDatetime"
+                      value={formData.dvrDatetime}
+                      onChange={handleInputChange}
+                      onFocus={() => handleTimeFieldFocus('dvrDatetime')}
+                      step="1"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="actualDatetime" className="form-label">Actual Date/Time:</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      id="actualDatetime"
+                      name="actualDatetime"
+                      value={formData.actualDatetime}
+                      onChange={handleInputChange}
+                      onFocus={() => handleTimeFieldFocus('actualDatetime')}
+                      step="1"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="timeDifference" className="form-label">Time Difference:</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="timeDifference"
+                      value={formData.timeDifference ? 
+                        `DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time` : 
+                        ''}
+                      readOnly
+                    />
+                  </div>
+
                   {/* Corrected Times Display */}
                   <div className="col-12 col-lg-6">
                     <label className="form-label">Corrected DVR Time:</label>
@@ -499,40 +578,18 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* On Scene Times */}
-                  <div className="col-12">
-                    <div className="row">
-                      <div className="col-md-6">
-                        <label htmlFor="onSceneArrival" className="form-label">
-                          On-Scene Arrival Date/Time:
-                        </label>
-                        <input
-                          type="datetime-local"
-                          className="form-control"
-                          id="onSceneArrival"
-                          name="onSceneArrival"
-                          value={formData.onSceneArrival}
-                          onChange={handleInputChange}
-                          onFocus={() => handleTimeFieldFocus('onSceneArrival')}
-                          required
-                        />
-                      </div>
-                      <div className="col-md-6">
-                        <label htmlFor="onSceneDeparture" className="form-label">
-                          On-Scene Departure Date/Time:
-                        </label>
-                        <input
-                          type="datetime-local"
-                          className="form-control"
-                          id="onSceneDeparture"
-                          name="onSceneDeparture"
-                          value={formData.onSceneDeparture}
-                          onChange={handleInputChange}
-                          onFocus={() => handleTimeFieldFocus('onSceneDeparture')}
-                          required
-                        />
-                      </div>
-                    </div>
+                  <div className="col-md-6 col-lg-3">
+                    <label htmlFor="retention" className="form-label">First Recording Date:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="retention"
+                      name="retention"
+                      value={formData.retention}
+                      onChange={handleInputChange}
+                      onFocus={() => handleTimeFieldFocus('retention')}
+                      required
+                    />
                   </div>
 
                   {/* DVR Information Section */}
@@ -601,63 +658,6 @@ const App = () => {
                       name="activeCameras"
                       value={formData.activeCameras}
                       onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-md-6 col-lg-3">
-                    <label htmlFor="dvrDatetime" className="form-label">DVR Date/Time:</label>
-                    <input
-                      type="datetime-local"
-                      className="form-control"
-                      id="dvrDatetime"
-                      name="dvrDatetime"
-                      value={formData.dvrDatetime}
-                      onChange={handleInputChange}
-                      onFocus={() => handleTimeFieldFocus('dvrDatetime')}
-                      step="1"
-                      required
-                    />
-                  </div>
-
-                  <div className="col-md-6 col-lg-3">
-                    <label htmlFor="actualDatetime" className="form-label">Actual Date/Time:</label>
-                    <input
-                      type="datetime-local"
-                      className="form-control"
-                      id="actualDatetime"
-                      name="actualDatetime"
-                      value={formData.actualDatetime}
-                      onChange={handleInputChange}
-                      onFocus={() => handleTimeFieldFocus('actualDatetime')}
-                      step="1"
-                      required
-                    />
-                  </div>
-
-                  <div className="col-md-6 col-lg-3">
-                    <label htmlFor="timeDifference" className="form-label">Time Difference:</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="timeDifference"
-                      value={formData.timeDifference ? 
-                        `DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time` : 
-                        ''}
-                      readOnly
-                    />
-                  </div>
-
-                  <div className="col-md-6 col-lg-3">
-                    <label htmlFor="retention" className="form-label">First Recording Date:</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      id="retention"
-                      name="retention"
-                      value={formData.retention}
-                      onChange={handleInputChange}
-                      onFocus={() => handleTimeFieldFocus('retention')}
                       required
                     />
                   </div>
