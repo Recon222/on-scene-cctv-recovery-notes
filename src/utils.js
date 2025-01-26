@@ -155,39 +155,164 @@ export const generateNotes = (formData) => {
 // Export utilities
 export const exportToPDF = (formData) => {
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
   const margin = 20;
   let yPosition = margin;
 
-  // Title
-  doc.setFontSize(16);
-  doc.text('Video Recovery Notes', margin, yPosition);
-  yPosition += 10;
+  // Helper function for text wrapping
+  const splitText = (text, maxWidth) => {
+    return doc.splitTextToSize(text, maxWidth);
+  };
 
-  // Basic information
-  doc.setFontSize(12);
-  yPosition += 10;
-  doc.text(`OCC#: ${formData.occ}`, margin, yPosition);
-  yPosition += 8;
-  doc.text(`Date: ${DateTime.fromISO(formData.onSceneArrival).toFormat('yyyy-MM-dd')}`, margin, yPosition);
-  yPosition += 8;
-  doc.text(`Location: ${formData.address}`, margin, yPosition);
-  yPosition += 8;
-
-  // Add generated notes
-  yPosition += 10;
-  doc.text('Notes:', margin, yPosition);
-  yPosition += 8;
-
-  const notes = generateNotes(formData).split('\n');
-  notes.forEach(note => {
-    // Handle page overflow
-    if (yPosition > 270) {
+  // Helper function to add a new page if needed
+  const checkPageBreak = (height) => {
+    if (yPosition + height > pageHeight - margin) {
       doc.addPage();
       yPosition = margin;
+      return true;
     }
-    doc.text(note, margin, yPosition);
-    yPosition += 8;
+    return false;
+  };
+
+  // Set default font styles
+  doc.setFont('helvetica');
+  
+  // Add logo placeholder (80x40 pixels)
+  doc.rect(margin, yPosition, 40, 20);
+  doc.setFontSize(8);
+  doc.text('Agency Logo', margin + 5, yPosition + 12);
+  
+  // Title
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Video Recovery Notes', pageWidth/2, yPosition + 10, { align: 'center' });
+  yPosition += 25;
+
+  // Basic Information Section
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setDrawColor(0);
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, pageWidth - (margin * 2), 7, 'F');
+  doc.text('CASE INFORMATION', margin + 2, yPosition + 5);
+  yPosition += 12;
+
+  // Case details in two columns
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  const col1Width = 70;
+  const col2Width = 80;
+  
+  // Column 1
+  doc.text(`OCC#: ${formData.occ}`, margin, yPosition);
+  doc.text(`Unit: ${formData.unit}`, margin, yPosition + 6);
+  doc.text(`Requested by: ${formData.requestedBy}`, margin, yPosition + 12);
+  
+  // Column 2
+  doc.text(`Badge#: ${formData.badge}`, margin + col1Width, yPosition);
+  doc.text(`Request Received: ${DateTime.fromISO(formData.requestReceived).toFormat('yyyy-MM-dd HH:mm')}`, margin + col1Width, yPosition + 6);
+  
+  yPosition += 20;
+
+  // Location Information Section
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, pageWidth - (margin * 2), 7, 'F');
+  doc.text('LOCATION DETAILS', margin + 2, yPosition + 5);
+  yPosition += 12;
+
+  doc.setFont('helvetica', 'normal');
+  const locationText = splitText(`Address: ${formData.address}`, pageWidth - (margin * 2));
+  doc.text(locationText, margin, yPosition);
+  yPosition += (locationText.length * 5);
+  
+  doc.text(`Contact: ${formData.locationContact}`, margin, yPosition);
+  doc.text(`Phone: ${formData.locationPhone}`, margin + col1Width, yPosition);
+  yPosition += 10;
+
+  // DVR Information Section
+  checkPageBreak(40);
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, pageWidth - (margin * 2), 7, 'F');
+  doc.text('DVR SPECIFICATIONS', margin + 2, yPosition + 5);
+  yPosition += 12;
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Location: ${formData.dvrLocation}`, margin, yPosition);
+  doc.text(`Type/Brand: ${formData.dvrType}`, margin + col1Width, yPosition);
+  yPosition += 6;
+  
+  doc.text(`Serial/Model #: ${formData.serialNumber}`, margin, yPosition);
+  doc.text(`Channels: ${formData.numChannels}`, margin + col1Width, yPosition);
+  yPosition += 6;
+  
+  doc.text(`Resolution: ${formData.recordingResolution}`, margin, yPosition);
+  doc.text(`FPS: ${formData.recordingFps}`, margin + col1Width, yPosition);
+  yPosition += 6;
+  
+  doc.text(`Username: ${formData.username}`, margin, yPosition);
+  doc.text(`Password: ${formData.password}`, margin + col1Width, yPosition);
+  yPosition += 10;
+
+  // Time Information Section
+  checkPageBreak(40);
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, pageWidth - (margin * 2), 7, 'F');
+  doc.text('TIME INFORMATION', margin + 2, yPosition + 5);
+  yPosition += 12;
+
+  doc.setFont('helvetica', 'normal');
+  const timeOffset = formData.timeDifference ? 
+    `DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time` :
+    'No time offset';
+  doc.text(`Time Offset: ${timeOffset}`, margin, yPosition);
+  yPosition += 6;
+
+  // Format time range based on timeType
+  const timeRangeText = `Extraction Period: ${DateTime.fromISO(formData.extractFrom).toFormat('yyyy-MM-dd HH:mm')} to ${DateTime.fromISO(formData.extractTo).toFormat('yyyy-MM-dd HH:mm')}`;
+  doc.text(timeRangeText, margin, yPosition);
+  yPosition += 10;
+
+  // Notes Section
+  checkPageBreak(40);
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, pageWidth - (margin * 2), 7, 'F');
+  doc.text('RECOVERY NOTES', margin + 2, yPosition + 5);
+  yPosition += 12;
+
+  doc.setFont('helvetica', 'normal');
+  const notes = formData.notes.split('\n');
+  notes.forEach(note => {
+    const wrappedNote = splitText(note, pageWidth - (margin * 2) - 5);
+    checkPageBreak(wrappedNote.length * 5);
+    doc.text(wrappedNote, margin, yPosition);
+    yPosition += (wrappedNote.length * 5) + 2;
   });
+
+  // Completion Information
+  checkPageBreak(30);
+  doc.setFont('helvetica', 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPosition, pageWidth - (margin * 2), 7, 'F');
+  doc.text('COMPLETION DETAILS', margin + 2, yPosition + 5);
+  yPosition += 12;
+
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Completed by: ${formData.completedBy}`, margin, yPosition);
+  doc.text(`Date: ${formData.dateCompleted}`, margin, yPosition + 6);
+  doc.text(`Time: ${formData.timeCompleted}`, margin + col1Width, yPosition + 6);
+  
+  // Add page numbers
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - margin);
+  }
 
   // Save the PDF
   doc.save(`${formData.occ}_video_recovery_notes.pdf`);
