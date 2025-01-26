@@ -210,7 +210,7 @@ export const exportToPDF = (formData) => {
   doc.text(`Requested by: ${formData.requestedBy}`, margin, yPosition + 12);
   
   // Column 2
-  doc.text(`Badge#: ${formData.badge}`, margin + col1Width, yPosition);
+  doc.text(`Badge#: ${formData.badge}`, margin + col1Width, yPosition + 12);
   doc.text(`Request Received: ${DateTime.fromISO(formData.requestReceived).toFormat('yyyy-MM-dd HH:mm')}`, margin + col1Width, yPosition + 6);
   
   yPosition += 20;
