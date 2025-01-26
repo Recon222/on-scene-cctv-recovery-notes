@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DateTime } from 'luxon';
+import { Locate } from 'lucide-react';
 import {
   calculateTimeDifference,
   calculateCorrectedTime,
@@ -8,6 +9,7 @@ import {
   exportToPDF,
   exportToJSON
 } from './utils';
+import { useGeolocation } from './hooks/useGeolocation';
 
 const initialFormState = {
   // Basic Info
@@ -65,6 +67,7 @@ const App = () => {
   // State
   const [formData, setFormData] = useState(initialFormState);
   const [generatedNotes, setGeneratedNotes] = useState('');
+  const { getLocation, isLoading, error } = useGeolocation();
   
   // Load saved form data from localStorage on initial render
   useEffect(() => {
@@ -194,6 +197,20 @@ const App = () => {
     }
   };
 
+  const handleGeolocate = async () => {
+    const address = await getLocation();
+    if (address) {
+      const formattedAddress = address.name ? 
+        `${address.name}, ${address.houseNumber} ${address.street}, ${address.city}` :
+        `${address.houseNumber} ${address.street}, ${address.city}`;
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        address: formattedAddress.trim()
+      }));
+    }
+  };
+
   return (
     <div className="container-xl py-5">
       <div className="row justify-content-center">
@@ -262,17 +279,36 @@ const App = () => {
                   </div>
 
                   {/* Location Information */}
-                  <div className="col-12 col-lg-6">
-                    <label htmlFor="address" className="form-label">Address/Business Name:</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleInputChange}
-                      required
-                    />
+                  <div className="col-12">
+                    <label htmlFor="address" className="form-label">Address:</label>
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="btn text-secondary px-2"
+                        style={{ 
+                          background: 'none', 
+                          border: 'none',
+                          marginLeft: '-40px',
+                          zIndex: 5,
+                          position: 'relative'
+                        }}
+                        onClick={handleGeolocate}
+                        disabled={isLoading}
+                        title="Get current location"
+                      >
+                        <Locate size={18} />
+                      </button>
+                    </div>
+                    {error && <div className="text-danger small mt-1">{error}</div>}
                   </div>
 
                   <div className="col-md-6 col-lg-3">
