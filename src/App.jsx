@@ -50,6 +50,8 @@ const initialFormState = {
   recordingFps: '',
   customFps: '',
   recordingSchedule: [],
+  useIndividualCameras: false,
+  cameras: [],
   
   // Export Info
   exportMedia: '',
@@ -209,6 +211,42 @@ const App = () => {
         address: formattedAddress.trim()
       }));
     }
+  };
+
+  const handleAddCamera = () => {
+    setFormData(prev => ({
+      ...prev,
+      cameras: [
+        ...prev.cameras,
+        {
+          id: Date.now(), // unique ID for each camera
+          name: '',
+          resolution: '',
+          customResolution: '',
+          fps: '',
+          customFps: '',
+          schedule: []
+        }
+      ]
+    }));
+  };
+
+  const handleRemoveCamera = (cameraId) => {
+    setFormData(prev => ({
+      ...prev,
+      cameras: prev.cameras.filter(camera => camera.id !== cameraId)
+    }));
+  };
+
+  const handleCameraChange = (cameraId, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      cameras: prev.cameras.map(camera => 
+        camera.id === cameraId 
+          ? { ...camera, [field]: value }
+          : camera
+      )
+    }));
   };
 
   return (
@@ -650,106 +688,288 @@ const App = () => {
                     />
                   </div>
 
-                  <div className="col-md-4 col-lg-2">
-                    <label htmlFor="recordingResolution" className="form-label">Recording Resolution:</label>
-                    <select
-                      className="form-select"
-                      id="recordingResolution"
-                      name="recordingResolution"
-                      value={formData.recordingResolution}
-                      onChange={(e) => handleCustomField('recordingResolution', e.target.value)}
-                      required
-                    >
-                      <option value="">Select resolution</option>
-                      <option value="352x240">352x240 (CIF)</option>
-                      <option value="704x480">704x480 (4CIF)</option>
-                      <option value="960x480">960x480 (960H)</option>
-                      <option value="1280x720">1280x720 (720p)</option>
-                      <option value="1920x1080">1920x1080 (1080p)</option>
-                      <option value="2560x1440">2560x1440 (1440p)</option>
-                      <option value="3840x2160">3840x2160 (4K)</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                    {formData.recordingResolution === 'custom' && (
-                      <input
-                        type="text"
-                        className="form-control mt-2"
-                        id="customResolution"
-                        name="customResolution"
-                        placeholder="Custom resolution"
-                        value={formData.customResolution}
-                        onChange={handleInputChange}
-                      />
-                    )}
+                  {/* Global Camera Settings */}
+                  {!formData.useIndividualCameras && (
+                    <>
+                      <div className="col-md-4 col-lg-2">
+                        <label htmlFor="recordingResolution" className="form-label">Recording Resolution:</label>
+                        <select
+                          className="form-select"
+                          id="recordingResolution"
+                          name="recordingResolution"
+                          value={formData.recordingResolution}
+                          onChange={(e) => handleCustomField('recordingResolution', e.target.value)}
+                          required
+                        >
+                          <option value="">Select resolution</option>
+                          <option value="352x240">352x240 (CIF)</option>
+                          <option value="704x480">704x480 (4CIF)</option>
+                          <option value="960x480">960x480 (960H)</option>
+                          <option value="1280x720">1280x720 (720p)</option>
+                          <option value="1920x1080">1920x1080 (1080p)</option>
+                          <option value="2560x1440">2560x1440 (1440p)</option>
+                          <option value="3840x2160">3840x2160 (4K)</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                        {formData.recordingResolution === 'custom' && (
+                          <input
+                            type="text"
+                            className="form-control mt-2"
+                            id="customResolution"
+                            name="customResolution"
+                            placeholder="Custom resolution"
+                            value={formData.customResolution}
+                            onChange={handleInputChange}
+                          />
+                        )}
+                      </div>
+
+                      <div className="col-md-4 col-lg-2">
+                        <label htmlFor="recordingFps" className="form-label">Recording FPS:</label>
+                        <select
+                          className="form-select"
+                          id="recordingFps"
+                          name="recordingFps"
+                          value={formData.recordingFps}
+                          onChange={(e) => handleCustomField('recordingFps', e.target.value)}
+                          required
+                        >
+                          <option value="">Select FPS</option>
+                          <option value="1">1 FPS</option>
+                          <option value="2">2 FPS</option>
+                          <option value="3">3 FPS</option>
+                          <option value="4">4 FPS</option>
+                          <option value="5">5 FPS</option>
+                          <option value="10">10 FPS</option>
+                          <option value="15">15 FPS</option>
+                          <option value="20">20 FPS</option>
+                          <option value="25">25 FPS</option>
+                          <option value="30">30 FPS</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                        {formData.recordingFps === 'custom' && (
+                          <input
+                            type="number"
+                            className="form-control mt-2"
+                            id="customFps"
+                            name="customFps"
+                            placeholder="Custom FPS"
+                            value={formData.customFps}
+                            onChange={handleInputChange}
+                          />
+                        )}
+                      </div>
+
+                      <div className="col-md-4 col-lg-2">
+                        <label className="form-label">Recording Schedule:</label>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="continuous"
+                            name="recordingSchedule"
+                            value="continuous"
+                            checked={formData.recordingSchedule.includes('continuous')}
+                            onChange={handleInputChange}
+                          />
+                          <label className="form-check-label" htmlFor="continuous">
+                            Continuous
+                          </label>
+                        </div>
+                        <div className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="motion"
+                            name="recordingSchedule"
+                            value="motion"
+                            checked={formData.recordingSchedule.includes('motion')}
+                            onChange={handleInputChange}
+                          />
+                          <label className="form-check-label" htmlFor="motion">
+                            Motion
+                          </label>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Camera Settings Toggle */}
+                  <div className="col-12 mt-3 mb-2">
+                    <div className="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                      <span className="fw-bold">Add Individual Cameras</span>
+                      <div className="form-check form-switch">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          role="switch"
+                          id="useIndividualCameras"
+                          name="useIndividualCameras"
+                          checked={formData.useIndividualCameras}
+                          onChange={(e) => {
+                            if (e.target.checked && formData.cameras.length === 0) {
+                              handleAddCamera(); // Add first camera automatically
+                            }
+                            setFormData(prev => ({
+                              ...prev,
+                              useIndividualCameras: e.target.checked
+                            }));
+                          }}
+                          style={{ width: '3rem', height: '1.5rem' }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="col-md-4 col-lg-2">
-                    <label htmlFor="recordingFps" className="form-label">Recording FPS:</label>
-                    <select
-                      className="form-select"
-                      id="recordingFps"
-                      name="recordingFps"
-                      value={formData.recordingFps}
-                      onChange={(e) => handleCustomField('recordingFps', e.target.value)}
-                      required
-                    >
-                      <option value="">Select FPS</option>
-                      <option value="1">1 FPS</option>
-                      <option value="2">2 FPS</option>
-                      <option value="3">3 FPS</option>
-                      <option value="4">4 FPS</option>
-                      <option value="5">5 FPS</option>
-                      <option value="10">10 FPS</option>
-                      <option value="15">15 FPS</option>
-                      <option value="20">20 FPS</option>
-                      <option value="25">25 FPS</option>
-                      <option value="30">30 FPS</option>
-                      <option value="custom">Custom</option>
-                    </select>
-                    {formData.recordingFps === 'custom' && (
-                      <input
-                        type="number"
-                        className="form-control mt-2"
-                        id="customFps"
-                        name="customFps"
-                        placeholder="Custom FPS"
-                        value={formData.customFps}
-                        onChange={handleInputChange}
-                      />
-                    )}
-                  </div>
+                  {/* Individual Camera Settings */}
+                  {formData.useIndividualCameras && (
+                    <div className="col-12">
+                      <div className="d-flex justify-content-between mb-3">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          onClick={handleAddCamera}
+                          style={{ minHeight: '44px' }}
+                        >
+                          Add Camera
+                        </button>
+                        <div className="text-muted">
+                          {formData.cameras.length} of {formData.activeCameras || '?'} cameras details recorded
+                        </div>
+                      </div>
 
-                  <div className="col-md-4 col-lg-2">
-                    <label className="form-label">Recording Schedule:</label>
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="continuous"
-                        name="recordingSchedule"
-                        value="continuous"
-                        checked={formData.recordingSchedule.includes('continuous')}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label" htmlFor="continuous">
-                        Continuous
-                      </label>
+                      {formData.cameras.map((camera, index) => (
+                        <div 
+                          key={camera.id} 
+                          className="card mb-3 position-relative"
+                        >
+                          <div className="card-body">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                              <h5 className="card-title mb-0">Camera {index + 1}</h5>
+                              <button
+                                type="button"
+                                className="btn btn-outline-danger"
+                                onClick={() => handleRemoveCamera(camera.id)}
+                                style={{ minHeight: '44px', minWidth: '44px' }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+
+                            <div className="row g-3">
+                              <div className="col-12">
+                                <label className="form-label">Camera Name:</label>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  value={camera.name}
+                                  onChange={(e) => handleCameraChange(camera.id, 'name', e.target.value)}
+                                  placeholder="e.g., Front Door"
+                                />
+                              </div>
+
+                              <div className="col-12">
+                                <label className="form-label">Resolution:</label>
+                                <select
+                                  className="form-select"
+                                  value={camera.resolution}
+                                  onChange={(e) => handleCameraChange(camera.id, 'resolution', e.target.value)}
+                                >
+                                  <option value="">Select resolution</option>
+                                  <option value="352x240">352x240 (CIF)</option>
+                                  <option value="704x480">704x480 (4CIF)</option>
+                                  <option value="960x480">960x480 (960H)</option>
+                                  <option value="1280x720">1280x720 (720p)</option>
+                                  <option value="1920x1080">1920x1080 (1080p)</option>
+                                  <option value="2560x1440">2560x1440 (1440p)</option>
+                                  <option value="3840x2160">3840x2160 (4K)</option>
+                                  <option value="custom">Custom</option>
+                                </select>
+                                {camera.resolution === 'custom' && (
+                                  <input
+                                    type="text"
+                                    className="form-control mt-2"
+                                    value={camera.customResolution}
+                                    onChange={(e) => handleCameraChange(camera.id, 'customResolution', e.target.value)}
+                                    placeholder="Custom resolution"
+                                  />
+                                )}
+                              </div>
+
+                              <div className="col-12">
+                                <label className="form-label">Frame Rate:</label>
+                                <select
+                                  className="form-select"
+                                  value={camera.fps}
+                                  onChange={(e) => handleCameraChange(camera.id, 'fps', e.target.value)}
+                                >
+                                  <option value="">Select FPS</option>
+                                  <option value="1">1 FPS</option>
+                                  <option value="2">2 FPS</option>
+                                  <option value="3">3 FPS</option>
+                                  <option value="4">4 FPS</option>
+                                  <option value="5">5 FPS</option>
+                                  <option value="10">10 FPS</option>
+                                  <option value="15">15 FPS</option>
+                                  <option value="20">20 FPS</option>
+                                  <option value="25">25 FPS</option>
+                                  <option value="30">30 FPS</option>
+                                  <option value="custom">Custom</option>
+                                </select>
+                                {camera.fps === 'custom' && (
+                                  <input
+                                    type="number"
+                                    className="form-control mt-2"
+                                    value={camera.customFps}
+                                    onChange={(e) => handleCameraChange(camera.id, 'customFps', e.target.value)}
+                                    placeholder="Custom FPS"
+                                  />
+                                )}
+                              </div>
+
+                              <div className="col-12">
+                                <label className="form-label">Recording Schedule:</label>
+                                <div className="form-check">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    checked={camera.schedule.includes('continuous')}
+                                    onChange={(e) => {
+                                      const newSchedule = e.target.checked
+                                        ? [...camera.schedule, 'continuous']
+                                        : camera.schedule.filter(s => s !== 'continuous');
+                                      handleCameraChange(camera.id, 'schedule', newSchedule);
+                                    }}
+                                    style={{ width: '1.5em', height: '1.5em' }}
+                                  />
+                                  <label className="form-check-label ms-2" style={{ fontSize: '1.1em' }}>
+                                    Continuous
+                                  </label>
+                                </div>
+                                <div className="form-check mt-2">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    checked={camera.schedule.includes('motion')}
+                                    onChange={(e) => {
+                                      const newSchedule = e.target.checked
+                                        ? [...camera.schedule, 'motion']
+                                        : camera.schedule.filter(s => s !== 'motion');
+                                      handleCameraChange(camera.id, 'schedule', newSchedule);
+                                    }}
+                                    style={{ width: '1.5em', height: '1.5em' }}
+                                  />
+                                  <label className="form-check-label ms-2" style={{ fontSize: '1.1em' }}>
+                                    Motion
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="motion"
-                        name="recordingSchedule"
-                        value="motion"
-                        checked={formData.recordingSchedule.includes('motion')}
-                        onChange={handleInputChange}
-                      />
-                      <label className="form-check-label" htmlFor="motion">
-                        Motion
-                      </label>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="col-md-4 col-lg-2">
                     <label htmlFor="exportMedia" className="form-label">Export Media:</label>
