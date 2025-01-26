@@ -259,6 +259,11 @@ const App = () => {
               
               <form onSubmit={handleSubmit}>
                 <div className="row g-3">
+                  {/* Submission Information Section */}
+                  <div className="col-12">
+                    <h4 className="mt-4">SUBMISSION INFORMATION</h4>
+                  </div>
+
                   {/* Basic Information */}
                   <div className="col-md-6 col-lg-3">
                     <label htmlFor="occ" className="form-label">Occ #:</label>
