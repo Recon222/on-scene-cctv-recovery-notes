@@ -683,7 +683,7 @@ const App = () => {
                   <div className="col-md-6 col-lg-3">
                     <label htmlFor="password" className="form-label">Password:</label>
                     <input
-                      type="password"
+                      type="text"
                       className="form-control"
                       id="password"
                       name="password"
