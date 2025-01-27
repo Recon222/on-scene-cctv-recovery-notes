@@ -1,0 +1,102 @@
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* General container adjustments */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Header adjustments */
+  .display-6 {
+    font-size: 1.5rem;
+  }
+
+  /* Card adjustments */
+  .card {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    border-radius: 0.75rem;
+  }
+
+  /* Form adjustments */
+  .form-control,
+  .form-select,
+  .input-group {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Button size adjustments */
+  .btn-lg {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* Improved touch targets */
+  .btn,
+  .dropdown-item,
+  .list-group-item,
+  .form-control,
+  .form-select {
+    min-height: 44px; /* iOS minimum touch target size */
+  }
+
+  /* Dropdown menu positioning */
+  .dropdown-menu {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    max-height: 50vh;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Improved dropdown items for touch */
+  .dropdown-item {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* Safe area handling */
+  .app-container {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Search improvements */
+  .input-group-lg > .form-control {
+    height: 50px;
+  }
+
+  /* Card content spacing */
+  .card-body {
+    padding: 1rem;
+  }
+
+  /* List group improvements */
+  .list-group-item {
+    padding: 1rem;
+  }
+
+  /* Form grid adjustments */
+  .row.g-3 {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+
+  .row.g-3 > [class*="col-"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Bottom navigation handling */
+  .fixed-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+} 
