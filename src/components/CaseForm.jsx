@@ -85,6 +85,62 @@ const CaseForm = ({ occ, onSave }) => {
     localStorage.setItem(`formData_${occ || 'draft'}`, JSON.stringify(formData));
   }, [formData, occ]);
 
+  // Calculate time difference when DVR or actual time changes
+  useEffect(() => {
+    if (formData.dvrDatetime && formData.actualDatetime) {
+      const diff = calculateTimeDifference(formData.dvrDatetime, formData.actualDatetime);
+      setFormData(prev => ({ ...prev, timeDifference: diff }));
+    }
+  }, [formData.dvrDatetime, formData.actualDatetime]);
+
+  // Calculate corrected times when time difference changes or extract times change
+  useEffect(() => {
+    if (formData.timeDifference && formData.extractFrom && formData.extractTo) {
+      const isActualTime = formData.timeType === 'actual_time';
+      
+      const correctedFrom = calculateCorrectedTime(formData.extractFrom, formData.timeDifference, isActualTime);
+      const correctedTo = calculateCorrectedTime(formData.extractTo, formData.timeDifference, isActualTime);
+      
+      setFormData(prev => ({
+        ...prev,
+        correctedDvrFrom: isActualTime ? correctedFrom : formData.extractFrom,
+        correctedDvrTo: isActualTime ? correctedTo : formData.extractTo,
+        correctedRealFrom: isActualTime ? formData.extractFrom : correctedFrom,
+        correctedRealTo: isActualTime ? formData.extractTo : correctedTo
+      }));
+    }
+  }, [formData.timeDifference, formData.extractFrom, formData.extractTo, formData.timeType]);
+
+  // Calculate retention when DVR datetime changes
+  useEffect(() => {
+    if (formData.dvrDatetime) {
+      const retention = calculateRetention(formData.onSceneArrival, formData.dvrDatetime);
+      setFormData(prev => ({ ...prev, retention: retention }));
+    }
+  }, [formData.dvrDatetime, formData.onSceneArrival]);
+
+  // Auto-generate notes when relevant fields change
+  useEffect(() => {
+    const notes = generateNotes(formData);
+    setFormData(prev => ({ ...prev, notes }));
+  }, [
+    formData.address,
+    formData.onSceneArrival,
+    formData.onSceneDeparture,
+    formData.extractFrom,
+    formData.extractTo,
+    formData.timeDifference,
+    formData.timeType,
+    formData.correctedDvrFrom,
+    formData.correctedDvrTo,
+    formData.correctedRealFrom,
+    formData.correctedRealTo,
+    formData.retention,
+    formData.exportMedia,
+    formData.mediaProvidedVia,
+    formData.sizeGb
+  ]);
+
   const handleTimeFieldFocus = (fieldName) => {
     if (!formData[fieldName]) {
       const now = DateTime.now();
@@ -559,6 +615,31 @@ const CaseForm = ({ occ, onSave }) => {
                         </select>
                       </div>
 
+                      {/* Add Time Difference Display */}
+                      <div className="col-12">
+                        <div className="alert alert-info mt-3" role="alert">
+                          {formData.timeDifference ? 
+                            `Time Offset: DVR is ${formData.timeDifference.formatted} ${formData.timeDifference.direction} real time` :
+                            'Enter DVR and Actual times to see time offset'
+                          }
+                        </div>
+                      </div>
+
+                      {/* Add Retention Field */}
+                      <div className="col-md-6">
+                        <label htmlFor="retention" className="form-label">Earliest Recording Date:</label>
+                        <input
+                          type="date"
+                          className="form-control"
+                          id="retention"
+                          name="retention"
+                          value={formData.retention ? formData.retention.toString() : ''}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+
+                      {/* Add Custom Resolution Field */}
                       {formData.recordingResolution === 'custom' && (
                         <div className="col-md-6">
                           <label htmlFor="customResolution" className="form-label">Custom Resolution:</label>
@@ -591,6 +672,7 @@ const CaseForm = ({ occ, onSave }) => {
                         </select>
                       </div>
 
+                      {/* Add Custom FPS Field */}
                       {formData.recordingFps === 'custom' && (
                         <div className="col-md-6">
                           <label htmlFor="customFps" className="form-label">Custom FPS:</label>
@@ -816,6 +898,33 @@ const CaseForm = ({ occ, onSave }) => {
                           <option value="Kris CAESAR #3299c">Kris CAESAR #3299c Forensic Video Analyst</option>
                           <option value="Veronica Ceolin #N4886">Veronica Ceolin #N4886 Forensic Video Technician</option>
                         </select>
+                      </div>
+
+                      {/* Add Completion Fields in Export Section */}
+                      <div className="col-md-6">
+                        <label htmlFor="dateCompleted" className="form-label">Date Completed:</label>
+                        <input
+                          type="date"
+                          className="form-control"
+                          id="dateCompleted"
+                          name="dateCompleted"
+                          value={formData.dateCompleted}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="col-md-6">
+                        <label htmlFor="timeCompleted" className="form-label">Time Completed:</label>
+                        <input
+                          type="time"
+                          className="form-control"
+                          id="timeCompleted"
+                          name="timeCompleted"
+                          value={formData.timeCompleted}
+                          onChange={handleInputChange}
+                          required
+                        />
                       </div>
                     </>
                   )}
